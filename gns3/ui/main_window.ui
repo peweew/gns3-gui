@@ -210,7 +210,7 @@ background-none;
    <addaction name="uiNewProjectAction"/>
    <addaction name="uiOpenProjectAction"/>
   </widget>
-  <widget class="QDockWidget" name="uiNodesDockWidget">
+  <widget class="NodesDockWidget" name="uiNodesDockWidget">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -246,6 +246,13 @@ background-none;
      <property name="bottomMargin">
       <number>0</number>
      </property>
+     <item>
+      <widget class="QLineEdit" name="uiNodesFilterLineEdit">
+       <property name="placeholderText">
+        <string>Filter</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="NodesView" name="uiNodesView">
        <property name="sizePolicy">
@@ -1235,6 +1242,12 @@ background-none;
    <class>GraphicsView</class>
    <extends>QGraphicsView</extends>
    <header>..graphics_view.h</header>
+  </customwidget>
+  <customwidget>
+   <class>NodesDockWidget</class>
+   <extends>QDockWidget</extends>
+   <header>..nodes_dock_widget.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>NodesView</class>

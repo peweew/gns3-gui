@@ -53,32 +53,42 @@ class NodesView(QtWidgets.QTreeWidget):
 
         super().__init__(parent)
         self._current_category = None
+        self._current_search = ""
 
         # enables the possibility to drag items.
         self.setDragEnabled(True)
 
         Controller.instance().connected_signal.connect(self.refresh)
 
+    def setCurrentSearch(self, search):
+        self._current_search = search
+        self.refresh()
+
     def refresh(self):
         self.clear()
-        self.populateNodesView(self._current_category)
+        self.populateNodesView(self._current_category, self._current_search)
 
-    def populateNodesView(self, category):
+    def populateNodesView(self, category, search):
         """
         Populates the nodes view with the device list of the specified
         category (None = all devices).
 
         :param category: category of device to list
+        :param search: filter
         """
 
         if not Controller.instance().connected():
             return
         self.setIconSize(QtCore.QSize(32, 32))
         self._current_category = category
+        self._current_search = search
         for module in MODULES:
             for node in module.instance().nodes():
                 if category is not None and category not in node["categories"]:
                     continue
+                if search != "" and search not in node["name"].lower():
+                    continue
+
                 item = QtWidgets.QTreeWidgetItem(self)
                 item.setText(0, node["name"])
                 item.setData(0, QtCore.Qt.UserRole, node)
@@ -89,6 +99,9 @@ class NodesView(QtWidgets.QTreeWidget):
         for appliance in ApplianceManager.instance().appliances():
             if category is not None and category != CATEGORY_TO_ID[appliance["category"]]:
                 continue
+            if search != "" and search not in appliance["name"].lower():
+                continue
+
             item = QtWidgets.QTreeWidgetItem(self)
             item.setForeground(0, QtGui.QBrush(QtGui.QColor("gray")))
             item.setText(0, appliance["name"])
@@ -137,8 +150,7 @@ class NodesView(QtWidgets.QTreeWidget):
                 f = tempfile.NamedTemporaryFile(mode="w+", suffix=".gns3a", delete=False)
                 json.dump(item.data(0, QtCore.Qt.UserRole), f)
                 f.close()
-                from .main_window import MainWindow
-                MainWindow.instance().loadPath(f.name)
+                self.window().loadPath(f.name)
                 return
 
             icon = item.icon(0)
@@ -167,7 +179,7 @@ class NodesView(QtWidgets.QTreeWidget):
 
         # We can not edit stuff like EthernetSwitch
         # or without config template like VPCS
-        if not "builtin" in node and hasattr(module, "vmConfigurationPage"):
+        if "builtin" not in node and hasattr(module, "vmConfigurationPage"):
             for vm_key, vm in module.instance().VMs().items():
                 if vm["name"] == node["name"]:
                     break
