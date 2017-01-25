@@ -22,8 +22,22 @@ class NodesDockWidget(QtWidgets.QDockWidget):
 
     def _filterTextChangedSlot(self, text):
         self.window().uiNodesView.setCurrentSearch(text)
+        self.window().uiNodesView.refresh()
+
+    def _filterIndexChangedSlot(self, index):
+        if index == 0:
+            self.window().uiNodesView.setShowInstalledAppliances(True)
+            self.window().uiNodesView.setShowAvailableAppliances(True)
+        elif index == 1:
+            self.window().uiNodesView.setShowInstalledAppliances(True)
+            self.window().uiNodesView.setShowAvailableAppliances(False)
+        else:
+            self.window().uiNodesView.setShowInstalledAppliances(False)
+            self.window().uiNodesView.setShowAvailableAppliances(True)
+        self.window().uiNodesView.refresh()
 
     def populateNodesView(self, category):
+        self.window().uiNodesFilterComboBox.activated.connect(self._filterIndexChangedSlot)
         self.window().uiNodesFilterLineEdit.textChanged.connect(self._filterTextChangedSlot)
         self.window().uiNodesView.clear()
         text = self.window().uiNodesFilterLineEdit.text().strip().lower()

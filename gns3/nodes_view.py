@@ -54,6 +54,8 @@ class NodesView(QtWidgets.QTreeWidget):
         super().__init__(parent)
         self._current_category = None
         self._current_search = ""
+        self._show_installed_appliances = True
+        self._show_available_appliances = True
 
         # enables the possibility to drag items.
         self.setDragEnabled(True)
@@ -62,7 +64,12 @@ class NodesView(QtWidgets.QTreeWidget):
 
     def setCurrentSearch(self, search):
         self._current_search = search
-        self.refresh()
+
+    def setShowInstalledAppliances(self, value):
+        self._show_installed_appliances = value
+
+    def setShowAvailableAppliances(self, value):
+        self._show_available_appliances = value
 
     def refresh(self):
         self.clear()
@@ -82,33 +89,36 @@ class NodesView(QtWidgets.QTreeWidget):
         self.setIconSize(QtCore.QSize(32, 32))
         self._current_category = category
         self._current_search = search
-        for module in MODULES:
-            for node in module.instance().nodes():
-                if category is not None and category not in node["categories"]:
+
+        if self._show_installed_appliances:
+            for module in MODULES:
+                for node in module.instance().nodes():
+                    if category is not None and category not in node["categories"]:
+                        continue
+                    if search != "" and search not in node["name"].lower():
+                        continue
+
+                    item = QtWidgets.QTreeWidgetItem(self)
+                    item.setText(0, node["name"])
+                    item.setData(0, QtCore.Qt.UserRole, node)
+                    item.setData(1, QtCore.Qt.UserRole, "node")
+                    item.setSizeHint(0, QtCore.QSize(32, 32))
+                    Controller.instance().getSymbolIcon(node["symbol"], qpartial(self._setItemIcon, item))
+
+        if self._show_available_appliances:
+            for appliance in ApplianceManager.instance().appliances():
+                if category is not None and category != CATEGORY_TO_ID[appliance["category"]]:
                     continue
-                if search != "" and search not in node["name"].lower():
+                if search != "" and search not in appliance["name"].lower():
                     continue
 
                 item = QtWidgets.QTreeWidgetItem(self)
-                item.setText(0, node["name"])
-                item.setData(0, QtCore.Qt.UserRole, node)
-                item.setData(1, QtCore.Qt.UserRole, "node")
+                item.setForeground(0, QtGui.QBrush(QtGui.QColor("gray")))
+                item.setText(0, appliance["name"])
+                item.setData(0, QtCore.Qt.UserRole, appliance)
+                item.setData(1, QtCore.Qt.UserRole, "appliance")
                 item.setSizeHint(0, QtCore.QSize(32, 32))
-                Controller.instance().getSymbolIcon(node["symbol"], qpartial(self._setItemIcon, item))
-
-        for appliance in ApplianceManager.instance().appliances():
-            if category is not None and category != CATEGORY_TO_ID[appliance["category"]]:
-                continue
-            if search != "" and search not in appliance["name"].lower():
-                continue
-
-            item = QtWidgets.QTreeWidgetItem(self)
-            item.setForeground(0, QtGui.QBrush(QtGui.QColor("gray")))
-            item.setText(0, appliance["name"])
-            item.setData(0, QtCore.Qt.UserRole, appliance)
-            item.setData(1, QtCore.Qt.UserRole, "appliance")
-            item.setSizeHint(0, QtCore.QSize(32, 32))
-            Controller.instance().getSymbolIcon(appliance["symbol"], qpartial(self._setItemIcon, item))
+                Controller.instance().getSymbolIcon(appliance["symbol"], qpartial(self._setItemIcon, item))
 
         if not self.topLevelItemCount() and category == Node.routers:
             QtWidgets.QMessageBox.warning(self, 'Routers', 'No routers have been configured.<br>You must provide your own router images in order to use GNS3.<br><br><a href="https://gns3.com/support/docs">Show documentation</a>')
