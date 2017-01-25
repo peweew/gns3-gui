@@ -118,7 +118,7 @@ class NodesView(QtWidgets.QTreeWidget):
                 item.setData(0, QtCore.Qt.UserRole, appliance)
                 item.setData(1, QtCore.Qt.UserRole, "appliance")
                 item.setSizeHint(0, QtCore.QSize(32, 32))
-                Controller.instance().getSymbolIcon(appliance["symbol"], qpartial(self._setItemIcon, item))
+                Controller.instance().getSymbolIcon(appliance.get("symbol"), qpartial(self._setItemIcon, item), fallback=":/symbols/" + appliance["category"] + ".svg")
 
         if not self.topLevelItemCount() and category == Node.routers:
             QtWidgets.QMessageBox.warning(self, 'Routers', 'No routers have been configured.<br>You must provide your own router images in order to use GNS3.<br><br><a href="https://gns3.com/support/docs">Show documentation</a>')

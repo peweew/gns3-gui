@@ -24,6 +24,12 @@ class ApplianceManager:
         self._appliances = []
 
         # TEMPORARY: For tests
+        # import os
+        # path = "/Users/noplay/code/gns3/gns3-registry/appliances"
+        # for appliance in os.listdir(path):
+        #     with open(os.path.join(path, appliance)) as f:
+        #         self._appliances.append(json.load(f))
+        # return
         self._appliances.append(json.loads("""{
     "name": "Micro Core Linux",
     "category": "guest",
